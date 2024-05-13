@@ -293,6 +293,10 @@ sylius_resource:
         app.zone:
             classes:
                 model: App\Entity\Addressing\Zone
+        app.currency:
+            classes:
+                model: App\Entity\Currency\Currency
+
 
 
             

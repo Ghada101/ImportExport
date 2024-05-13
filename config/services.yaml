@@ -503,8 +503,6 @@ services:
             - "@doctrine.orm.entity_manager"
             - [ "Id", "Code" ,"Name", "Type" ]
     
-        
-         
     #zones_exporter: 
     sylius.exporter.zones.csv:
         class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\ResourceExporter
@@ -540,3 +538,64 @@ services:
             - "@sylius.repository.zone"
             - "%sylius.resources%"
         tags: ['controller.service_arguments']
+
+    #currencies_importer
+    sylius.importer.currency.csv:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Importer\ResourceImporter
+        arguments:
+            - "@sylius.factory.csv_reader"
+            - "@sylius.manager.currency"
+            - "@sylius.processor.currency"
+            - "@sylius.importer.result"
+            - 100
+            - false
+            - false
+        tags:
+            - { name: sylius.importer, type: currency, domain: sylius, format: csv }
+
+    sylius.processor.currency:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Processor\ResourceProcessor
+        arguments:
+            - "@app.factory.currency"
+            - "@app.repository.currency"
+            - "@property_accessor"
+            - "@sylius.importer.metadata_validator"
+            - "@doctrine.orm.entity_manager"
+            - [ "Id", "Code" ,"Name" ]
+    
+    #currencies_exporter: 
+    sylius.exporter.currencies.csv:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\ResourceExporter
+        arguments:
+            - "@sylius.exporter.csv_writer"
+            - "@sylius.exporter.pluginpool.currencies"
+            - [ "Id", "Code" ,"Name" ]
+            - "@sylius.exporters_transformer_pool" # Optional
+        tags:
+            - { name: sylius.exporter, type: sylius.currency, format: csv }
+
+    # PluginPools for Exporters. Can contain multiple Plugins
+    sylius.exporter.pluginpool.currencies:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\PluginPool
+        arguments:
+            - [ "@sylius.exporter.plugin.resource.currency" ]
+            - [ "Id", "Code" ,"Name" ]
+
+    sylius.exporter.plugin.resource.currency:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\ResourcePlugin
+        arguments:
+            - "@sylius.repository.currency"
+            - "@property_accessor"
+            - "@doctrine.orm.entity_manager"
+
+    sylius.controller.export_data_currency:
+        public: true
+        class: FriendsOfSylius\SyliusImportExportPlugin\Controller\ExportDataController
+        arguments:
+            - "@sylius.exporters_registry"
+            - "@sylius.resource_controller.request_configuration_factory"
+            - "@sylius.resource_controller.resources_collection_provider"
+            - "@sylius.repository.currency"
+            - "%sylius.resources%"
+        tags: [ 'controller.service_arguments' ]
+        

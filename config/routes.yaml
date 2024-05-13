@@ -84,5 +84,17 @@ app_export_data_zone:
         _sylius:
             filterable: true
             grid: sylius_admin_zone
+            
+            
+
+app_export_data_currency:
+    path: /admin/export/sylius.currency/{format}
+    methods: [GET]
+    defaults:
+        resource: sylius.currency
+        _controller: sylius.controller.export_data_currency::exportAction
+        _sylius:
+            filterable: true
+            grid: sylius_admin_currency
 
 

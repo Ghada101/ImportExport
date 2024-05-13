@@ -1,0 +1,88 @@
+sylius_paypal_webhook:
+    resource: "@SyliusPayPalPlugin/Resources/config/webhook_routing.yaml"
+ 
+app_export_data_channel:
+    path: /admin/export/sylius.channel/{format}
+    methods: [GET]
+    defaults:
+        resource: sylius.channel
+        _controller: sylius.controller.export_data_channel::exportAction
+        _sylius:
+            filterable: true
+            grid: sylius_admin_channel
+
+app_export_data_product_attribute:
+    path: /admin/export/sylius.product_attribute/{format}
+    methods: [GET]
+    defaults:
+        resource: sylius.product_attribute
+        _controller: sylius.controller.export_data_product_attribute::exportAction
+        _sylius:
+            filterable: true
+            grid: sylius_admin_product_attribute
+
+
+app_export_data_product_option:
+    path: /admin/export/sylius.product_option/{format}
+    methods: [GET]
+    defaults:
+        resource: sylius.product_option
+        _controller: sylius.controller.export_data_product_option::exportAction
+        _sylius:
+            filterable: true
+            grid: sylius_admin_product_option
+            
+app_export_data_product_association_type:
+    path: /admin/export/sylius.product_association_type/{format}
+    methods: [GET]
+    defaults:
+        resource: sylius.product_association_type
+        _controller: sylius.controller.export_data_product_association_type::exportAction
+        _sylius:
+            filterable: true
+            grid: sylius_admin_product_association_type
+            
+            
+app_export_data_payment:
+    path: /admin/export/sylius.payment/{format}
+    methods: [GET]
+    defaults:
+        resource: sylius.payment
+        _controller: sylius.controller.export_data_payment::exportAction
+        _sylius:
+            filterable: true
+            grid: sylius_admin_payment
+            
+app_export_data_customer_group:
+    path: /admin/export/sylius.customer_group/{format}
+    methods: [GET]
+    defaults:
+        resource: sylius.customer_group
+        _controller: sylius.controller.export_data_customer_group::exportAction
+        _sylius:
+            filterable: true
+            grid: sylius_admin_customer_group
+
+
+app_export_data_promotion:
+    path: /admin/export/sylius.promotion/{format}
+    methods: [GET]
+    defaults:
+        resource: sylius.promotion
+        _controller: sylius.controller.export_data_promotion::exportAction
+        _sylius:
+            filterable: true
+            grid: sylius_admin_promotion
+
+
+app_export_data_zone:
+    path: /admin/export/sylius.zone/{format}
+    methods: [GET]
+    defaults:
+        resource: sylius.zone
+        _controller: sylius.controller.export_data_zone::exportAction
+        _sylius:
+            filterable: true
+            grid: sylius_admin_zone
+
+

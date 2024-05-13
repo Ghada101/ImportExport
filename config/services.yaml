@@ -1,0 +1,542 @@
+services:
+    # Default configuration for services in *this* file
+    _defaults: 
+        # Automatically injects dependencies in your services
+        autowire: true
+
+        # Automatically registers your services as commands, event subscribers, etc.
+        autoconfigure: true
+
+        # Allows optimizing the container by removing unused services; this also means
+        # fetching services directly from the container via $container->get() won't work
+        public: false
+
+    _instanceof:
+        Sylius\Bundle\ResourceBundle\Controller\ResourceController:
+            autowire: false
+        Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType:
+            autowire: false
+
+    # Makes classes in src/ available to be used as services;
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/*'
+        exclude: '../src/{Entity,Migrations,Tests,Kernel.php}'
+
+    # Controllers are imported separately to make sure services can be injected
+    # as action arguments even if you don't extend any base controller class
+    App\Controller\:
+        resource: '../src/Controller'
+        tags: ['controller.service_arguments']
+
+    redis_connection_factory:
+        class: Enqueue\Redis\RedisConnectionFactory
+        
+    
+    #Channel_Importer
+    sylius.importer.channel.csv:
+        class:  FriendsOfSylius\SyliusImportExportPlugin\Importer\ResourceImporter
+        arguments:
+            - "@sylius.factory.csv_reader"
+            - "@sylius.manager.channel"
+            - "@sylius.processor.channel"
+            - "@sylius.importer.result"
+            - 100
+            - false
+            - false
+        tags:
+            - { name: sylius.importer, type: channel, domain: sylius, format: csv }
+
+    sylius.processor.channel:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Processor\ResourceProcessor
+        arguments:
+            - "@app.factory.channel"
+            - "@app.repository.channel"
+            - "@property_accessor"
+            - "@sylius.importer.metadata_validator"
+            - "@doctrine.orm.entity_manager"
+            - ["code", "name", "baseCurrency", "defaultLocal", "taxCalculationStrategy" ]
+         
+    
+    #Channel_Exporter   
+    sylius.exporter.channels.csv:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\ResourceExporter
+        arguments:
+            - "@sylius.exporter.csv_writer"
+            - "@sylius.exporter.pluginpool.channels"
+            - ["code", "name", "baseCurrency", "defaultLocal", "taxCalculationStrategy" ]
+            - "@sylius.exporters_transformer_pool" # Optional
+        tags:
+            - { name: sylius.exporter, type: sylius.channel, format: csv }
+            
+    # PluginPools for Exporters. Can contain multiple Plugins
+    sylius.exporter.pluginpool.channels:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\PluginPool
+        arguments:
+            - [ "@sylius.exporter.plugin.resource.channel" ]
+            - ["code", "name", "baseCurrency", "defaultLocal", "taxCalculationStrategy" ]
+       
+    # Plugins for Exporters
+    sylius.exporter.plugin.resource.channel:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\ResourcePlugin
+        arguments:
+            - "@sylius.repository.channel"
+            - "@property_accessor"
+            - "@doctrine.orm.entity_manager"
+
+    
+    sylius.controller.export_data_channel:
+        public: true
+        class: FriendsOfSylius\SyliusImportExportPlugin\Controller\ExportDataController
+        arguments:
+            - "@sylius.exporters_registry"
+            - "@sylius.resource_controller.request_configuration_factory"
+            - "@sylius.resource_controller.resources_collection_provider"
+            - "@sylius.repository.channel"
+            - "%sylius.resources%"
+        tags: ['controller.service_arguments']
+   
+   
+    #Prdcut_Attribute_Importer
+    sylius.importer.product_attribute.csv:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Importer\ResourceImporter
+        arguments:
+            - "@sylius.factory.csv_reader"
+            - "@sylius.manager.product_attribute"
+            - "@sylius.processor.product_attribute"
+            - "@sylius.importer.result"
+            - 100
+            - false
+            - false
+        tags:
+            - { name: sylius.importer, type: product_attribute, domain: sylius, format: csv }
+
+
+    sylius.processor.product_attribute:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Processor\ResourceProcessor
+        arguments:
+            - "@app.factory.product_attribute"
+            - "@app.repository.product_attribute"
+            - "@property_accessor"
+            - "@sylius.importer.metadata_validator"
+            - "@doctrine.orm.entity_manager"
+            - [ "code", "type", "storageType", "position", "translatable" ]
+
+
+    #Product_Attribute_Exporter
+    sylius.exporter.product_attributes.csv:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\ResourceExporter
+        arguments:
+            - "@sylius.exporter.csv_writer"
+            - "@sylius.exporter.pluginpool.product_attributes"
+            - [ "code", "type", "storageType", "position", "translatable" ]
+            - "@sylius.exporters_transformer_pool" # Optional
+        tags:
+            - { name: sylius.exporter, type: sylius.product_attribute, format: csv }
+    
+    # PluginPools for Exporters. Can contain multiple Plugins
+    sylius.exporter.pluginpool.product_attributes:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\PluginPool
+        arguments:
+            - ["@sylius.exporter.plugin.resource.product_attribute"]
+            - [ "code", "type", "storageType", "position", "translatable" ]
+    
+    # Plugins for Exporters
+    sylius.exporter.plugin.resource.product_attribute:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\ResourcePlugin
+        arguments:
+            - "@sylius.repository.product_attribute"
+            - "@property_accessor"
+            - "@doctrine.orm.entity_manager"
+
+    sylius.controller.export_data_product_attribute:
+        public: true
+        class: FriendsOfSylius\SyliusImportExportPlugin\Controller\ExportDataController
+        arguments:
+            - "@sylius.exporters_registry"
+            - "@sylius.resource_controller.request_configuration_factory"
+            - "@sylius.resource_controller.resources_collection_provider"
+            - "@sylius.repository.product_attribute"
+            - "%sylius.resources%"
+        tags: ['controller.service_arguments']
+
+
+    #Product_Options_Importer
+    sylius.importer.product_option.csv:
+        class:  FriendsOfSylius\SyliusImportExportPlugin\Importer\ResourceImporter
+        arguments:
+            - "@sylius.factory.csv_reader"
+            - "@sylius.manager.product_option"
+            - "@sylius.processor.product_option"
+            - "@sylius.importer.result"
+            - 100
+            - false
+            - false
+        tags:
+            - { name: sylius.importer, type: product_option, domain: sylius, format: csv }
+
+
+    sylius.processor.product_option:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Processor\ResourceProcessor
+        arguments:
+            - "@app.factory.product_option"
+            - "@app.repository.product_option"
+            - "@property_accessor"
+            - "@sylius.importer.metadata_validator"
+            - "@doctrine.orm.entity_manager"
+            - ["Code", "Position"]
+         
+
+    #Product_Options_Exporter
+    sylius.exporter.product_options.csv:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\ResourceExporter
+        arguments:
+            - "@sylius.exporter.csv_writer"
+            - "@sylius.exporter.pluginpool.product_options"
+            - ["Code", "Position", "Name" ]
+            - "@sylius.exporters_transformer_pool" # Optional
+        tags:
+            - { name: sylius.exporter, type: sylius.product_option, format: csv }
+    
+    # PluginPools for Exporters. Can contain multiple Plugins
+    sylius.exporter.pluginpool.product_options:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\PluginPool
+        arguments:
+            - ["@sylius.exporter.plugin.resource.product_option"]
+            - ["Code", "Position" , "Name"]
+            
+    # Plugins for Exporters
+    sylius.exporter.plugin.resource.product_option:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\ResourcePlugin
+        arguments:
+            - "@sylius.repository.product_option"
+            - "@property_accessor"
+            - "@doctrine.orm.entity_manager"
+    
+    sylius.controller.export_data_product_option:
+        public: true
+        class: FriendsOfSylius\SyliusImportExportPlugin\Controller\ExportDataController
+        arguments:
+            - "@sylius.exporters_registry"
+            - "@sylius.resource_controller.request_configuration_factory"
+            - "@sylius.resource_controller.resources_collection_provider"
+            - "@sylius.repository.product_option"
+            - "%sylius.resources%"
+        tags: [ 'controller.service_arguments' ]
+        
+        
+    #Product_Association_Type_Importer
+    sylius.importer.product_association_type.csv:
+        class:  FriendsOfSylius\SyliusImportExportPlugin\Importer\ResourceImporter
+        arguments:
+            - "@sylius.factory.csv_reader"
+            - "@sylius.manager.product_association_type"
+            - "@sylius.processor.product_association_type"
+            - "@sylius.importer.result"
+            - 100
+            - false
+            - false
+        tags:
+            - { name: sylius.importer, type: product_association_type, domain: sylius, format: csv }
+
+
+    sylius.processor.product_association_type:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Processor\ResourceProcessor
+        arguments:
+            - "@app.factory.product_association_type"
+            - "@app.repository.product_association_type"
+            - "@property_accessor"
+            - "@sylius.importer.metadata_validator"
+            - "@doctrine.orm.entity_manager"
+            - ["Code" ]
+       
+     
+    #Product_Association_Type_Exporter
+    sylius.exporter.product_association_types.csv:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\ResourceExporter
+        arguments:
+            - "@sylius.exporter.csv_writer"
+            - "@sylius.exporter.pluginpool.product_association_types"
+            - [ "Id", "Code" ,"Name" ]
+            - "@sylius.exporters_transformer_pool" # Optional
+        tags:
+            - { name: sylius.exporter, type: sylius.product_association_type, format: csv }
+
+
+    sylius.exporter.pluginpool.product_association_types:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\PluginPool
+        arguments:
+            - [ "@sylius.exporter.plugin.resource.product_association_type" ]
+            - [ "Id", "Code" ,"Name" ]
+    
+    
+    sylius.exporter.plugin.resource.product_association_type:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\ResourcePlugin
+        arguments:
+            - "@sylius.repository.product_association_type"
+            - "@property_accessor"
+            - "@doctrine.orm.entity_manager"
+    
+    sylius.controller.export_data_product_association_type:
+        public: true
+        class: FriendsOfSylius\SyliusImportExportPlugin\Controller\ExportDataController
+        arguments:
+            - "@sylius.exporters_registry"
+            - "@sylius.resource_controller.request_configuration_factory"
+            - "@sylius.resource_controller.resources_collection_provider"
+            - "@sylius.repository.product_association_type"
+            - "%sylius.resources%"
+        tags: [ 'controller.service_arguments' ]
+
+
+    #Product_variant_Importer
+    sylius.importer.product_variant.csv:
+        class:  FriendsOfSylius\SyliusImportExportPlugin\Importer\ResourceImporter
+        arguments:
+            - "@sylius.factory.csv_reader"
+            - "@sylius.manager.product_variant"
+            - "@sylius.processor.product_variant"
+            - "@sylius.importer.result"
+            - 100
+            - false
+            - false
+        tags:
+            - { name: sylius.importer, type: product_variant, domain: sylius, format: csv }
+
+    sylius.processor.product_variant:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Processor\ResourceProcessor
+        arguments:
+            - "@app.factory.product_variant"
+            - "@app.repository.product_variant"
+            - "@property_accessor"
+            - "@sylius.importer.metadata_validator"
+            - "@doctrine.orm.entity_manager"
+            - ["code", "position", "enabled", "product_id" ]
+    
+    
+    
+    #Order_Importer
+    sylius.importer.order.csv:
+        class:  FriendsOfSylius\SyliusImportExportPlugin\Importer\ResourceImporter
+        arguments:
+            - "@sylius.factory.csv_reader"
+            - "@sylius.manager.order"
+            - "@sylius.processor.order"
+            - "@sylius.importer.result"
+            - 100
+            - false
+            - false
+        tags:
+            - { name: sylius.importer, type: order, domain: sylius, format: csv }
+
+    sylius.processor.order:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Processor\ResourceProcessor
+        arguments:
+            - "@app.factory.order"
+            - "@app.repository.order"
+            - "@property_accessor"
+            - "@sylius.importer.metadata_validator"
+            - "@doctrine.orm.entity_manager"
+            - [ "number", "notes", "state" , "currency_code", "local_code", "checkout_state", "payment_state", 
+            "shipping_state", "customer_ip", "created_by_guest"]
+    
+    
+    #Payment_exporter
+    sylius.exporter.payments.csv:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\ResourceExporter
+        arguments:
+            - "@sylius.exporter.csv_writer"
+            - "@sylius.exporter.pluginpool.payments"
+            - [ "Id", "method_id" ,"currency_code" ]
+            - "@sylius.exporters_transformer_pool" # Optional
+        tags:
+            - { name: sylius.exporter, type: sylius.payment, format: csv }
+    
+    sylius.exporter.pluginpool.payments:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\PluginPool
+        arguments:
+            - [ "@sylius.exporter.plugin.resource.payment" ]
+            - [ "Id", "method_id" ,"currency_code" ]
+           
+           
+                
+    # Plugins for Exporters
+    sylius.exporter.plugin.resource.payment:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\ResourcePlugin
+        arguments:
+            - "@sylius.repository.payment"
+            - "@property_accessor"
+            - "@doctrine.orm.entity_manager"
+
+    sylius.controller.export_data_payment:
+        public: true
+        class: FriendsOfSylius\SyliusImportExportPlugin\Controller\ExportDataController
+        arguments:
+            - "@sylius.exporters_registry"
+            - "@sylius.resource_controller.request_configuration_factory"
+            - "@sylius.resource_controller.resources_collection_provider"
+            - "@sylius.repository.payment"
+            - "%sylius.resources%"
+        tags: ['controller.service_arguments']
+
+
+
+    #Customer_group_exporter
+    sylius.exporter.customer_groups.csv:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\ResourceExporter
+        arguments:
+            - "@sylius.exporter.csv_writer"
+            - "@sylius.exporter.pluginpool.customer_groups"
+            - [ "Id", "Code" ,"Name" ]
+            - "@sylius.exporters_transformer_pool" # Optional
+        tags:
+            - { name: sylius.exporter, type: sylius.customer_group, format: csv }
+    
+    # PluginPools for Exporters. Can contain multiple Plugins
+    sylius.exporter.pluginpool.customer_groups:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\PluginPool
+        arguments:
+            - ["@sylius.exporter.plugin.resource.customer_group"]
+            - [ "Id", "Code" ,"Name" ]
+    
+    # Plugins for Exporters
+    sylius.exporter.plugin.resource.customer_group:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\ResourcePlugin
+        arguments:
+            - "@sylius.repository.customer_group"
+            - "@property_accessor"
+            - "@doctrine.orm.entity_manager"
+    
+    sylius.controller.export_data_customer_group:
+        public: true
+        class: FriendsOfSylius\SyliusImportExportPlugin\Controller\ExportDataController
+        arguments:
+            - "@sylius.exporters_registry"
+            - "@sylius.resource_controller.request_configuration_factory"
+            - "@sylius.resource_controller.resources_collection_provider"
+            - "@sylius.repository.customer_group"
+            - "%sylius.resources%"
+        tags: [ 'controller.service_arguments' ]
+    
+    #Promotion_Exporter
+    sylius.exporter.promotions.csv:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\ResourceExporter
+        arguments:
+            - "@sylius.exporter.csv_writer"
+            - "@sylius.exporter.pluginpool.promotions"
+            - [ "Id", "Code" ,"Name" , "Description", "Priority", "Exclusive", "Starts at", "Ends at", "Coupons"]
+            - "@sylius.exporters_transformer_pool" # Optional
+        tags:
+            - { name: sylius.exporter, type: sylius.promotion, format: csv }
+    
+    # PluginPools for Exporters. Can contain multiple Plugins
+    sylius.exporter.pluginpool.promotions:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\PluginPool
+        arguments:
+            - ["@sylius.exporter.plugin.resource.promotion"]
+            - ["Id", "Code" ,"Name", "Description", "Priority", "Exclusive", "Starts at","Ends at", "Coupons"]
+    # Plugins for Exporters
+    sylius.exporter.plugin.resource.promotion:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\ResourcePlugin
+        arguments:
+            - "@sylius.repository.promotion"
+            - "@property_accessor"
+            - "@doctrine.orm.entity_manager"
+            
+    sylius.controller.export_data_promotion:
+        public: true
+        class: FriendsOfSylius\SyliusImportExportPlugin\Controller\ExportDataController
+        arguments:
+            - "@sylius.exporters_registry"
+            - "@sylius.resource_controller.request_configuration_factory"
+            - "@sylius.resource_controller.resources_collection_provider"
+            - "@sylius.repository.promotion"
+            - "%sylius.resources%"
+        tags: ['controller.service_arguments']
+
+    #Promotion_Importer
+    sylius.importer.promotion.csv:
+        class:  FriendsOfSylius\SyliusImportExportPlugin\Importer\ResourceImporter
+        arguments:
+            - "@sylius.factory.csv_reader"
+            - "@sylius.manager.promotion"
+            - "@sylius.processor.promotion"
+            - "@sylius.importer.result"
+            - 100
+            - false
+            - false
+        tags:
+            - { name: sylius.importer, type: promotion, domain: sylius, format: csv }
+
+    sylius.processor.promotion:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Processor\ResourceProcessor
+        arguments:
+            - "@app.factory.promotion"
+            - "@app.repository.promotion"
+            - "@property_accessor"
+            - "@sylius.importer.metadata_validator"
+            - "@doctrine.orm.entity_manager"
+            - ["code", "name", "priority", "description", "exclusive", "usage_limit", "coupon_based" , "applies_to_discounted"]
+        
+    
+    #zones_importer
+    sylius.importer.zone.csv:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Importer\ResourceImporter
+        arguments:
+            - "@sylius.factory.csv_reader"
+            - "@sylius.manager.zone"
+            - "@sylius.processor.zone"
+            - "@sylius.importer.result"
+            - 100
+            - false
+            - false
+        tags:
+            - { name: sylius.importer, type: zone, domain: sylius, format: csv }
+
+    sylius.processor.zone:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Processor\ResourceProcessor
+        arguments:
+            - "@app.factory.zone"
+            - "@app.repository.zone"
+            - "@property_accessor"
+            - "@sylius.importer.metadata_validator"
+            - "@doctrine.orm.entity_manager"
+            - [ "Id", "Code" ,"Name", "Type" ]
+    
+        
+         
+    #zones_exporter: 
+    sylius.exporter.zones.csv:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\ResourceExporter
+        arguments:
+            - "@sylius.exporter.csv_writer"
+            - "@sylius.exporter.pluginpool.zones"
+            - [ "Id", "Code" ,"Name", "Type" ]
+            - "@sylius.exporters_transformer_pool" # Optional
+        tags:
+            - { name: sylius.exporter, type: sylius.zone, format: csv }
+    
+    # PluginPools for Exporters. Can contain multiple Plugins
+    sylius.exporter.pluginpool.zones:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\PluginPool
+        arguments:
+            - ["@sylius.exporter.plugin.resource.zone"]
+            - [ "Id", "Code" ,"Name", "Type" ]
+    
+    sylius.exporter.plugin.resource.zone:
+        class: FriendsOfSylius\SyliusImportExportPlugin\Exporter\Plugin\ResourcePlugin
+        arguments:
+            - "@sylius.repository.zone"
+            - "@property_accessor"
+            - "@doctrine.orm.entity_manager"
+
+    sylius.controller.export_data_zone:
+        public: true
+        class: FriendsOfSylius\SyliusImportExportPlugin\Controller\ExportDataController
+        arguments:
+            - "@sylius.exporters_registry"
+            - "@sylius.resource_controller.request_configuration_factory"
+            - "@sylius.resource_controller.resources_collection_provider"
+            - "@sylius.repository.zone"
+            - "%sylius.resources%"
+        tags: ['controller.service_arguments']

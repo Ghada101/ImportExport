@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1d20bd976d784d5d0fd8dbd2c5845cb7",
+    "content-hash": "e59e1553b1b13d1fc4758c71afa721d3",
     "packages": [
         {
             "name": "alcohol/iso4217",
@@ -13173,26 +13173,25 @@
         },
         {
             "name": "symfony/var-exporter",
-            "version": "v6.4.7",
+            "version": "v7.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-exporter.git",
-                "reference": "825f9b00c37bbe1c1691cc1aff9b5451fc9b4405"
+                "reference": "cdecc0022e40e90340ba1a59a3d5ccf069777078"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-exporter/zipball/825f9b00c37bbe1c1691cc1aff9b5451fc9b4405",
-                "reference": "825f9b00c37bbe1c1691cc1aff9b5451fc9b4405",
+                "url": "https://api.github.com/repos/symfony/var-exporter/zipball/cdecc0022e40e90340ba1a59a3d5ccf069777078",
+                "reference": "cdecc0022e40e90340ba1a59a3d5ccf069777078",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.1",
-                "symfony/deprecation-contracts": "^2.5|^3"
+                "php": ">=8.2"
             },
             "require-dev": {
                 "symfony/property-access": "^6.4|^7.0",
                 "symfony/serializer": "^6.4|^7.0",
-                "symfony/var-dumper": "^5.4|^6.0|^7.0"
+                "symfony/var-dumper": "^6.4|^7.0"
             },
             "type": "library",
             "autoload": {
@@ -13230,7 +13229,7 @@
                 "serialize"
             ],
             "support": {
-                "source": "https://github.com/symfony/var-exporter/tree/v6.4.7"
+                "source": "https://github.com/symfony/var-exporter/tree/v7.0.7"
             },
             "funding": [
                 {
@@ -13246,7 +13245,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-04-18T09:22:46+00:00"
+            "time": "2024-04-18T09:29:19+00:00"
         },
         {
             "name": "symfony/web-link",
@@ -18637,16 +18636,16 @@
         },
         {
             "name": "sylius-labs/suite-tags-extension",
-            "version": "v0.1",
+            "version": "v0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SyliusLabs/SuiteTagsExtension.git",
-                "reference": "cfd2a435b5adc2ee8fb0a5488e4b792092d41f55"
+                "reference": "0954be0e4e854df9cb6710700267b06374ec761f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SyliusLabs/SuiteTagsExtension/zipball/cfd2a435b5adc2ee8fb0a5488e4b792092d41f55",
-                "reference": "cfd2a435b5adc2ee8fb0a5488e4b792092d41f55",
+                "url": "https://api.github.com/repos/SyliusLabs/SuiteTagsExtension/zipball/0954be0e4e854df9cb6710700267b06374ec761f",
+                "reference": "0954be0e4e854df9cb6710700267b06374ec761f",
                 "shasum": ""
             },
             "require": {
@@ -18654,8 +18653,8 @@
                 "php": "^7.4 || ^8.0"
             },
             "require-dev": {
-                "symfony/process": "^4.4 || ^5.0 || ^6.0",
-                "vimeo/psalm": "^4.1.1"
+                "phpstan/phpstan": "^1.10",
+                "symfony/process": "^4.4 || ^5.0 || ^6.0"
             },
             "type": "library",
             "autoload": {
@@ -18676,9 +18675,9 @@
             "description": "Filters suites run by their configured tags",
             "support": {
                 "issues": "https://github.com/SyliusLabs/SuiteTagsExtension/issues",
-                "source": "https://github.com/SyliusLabs/SuiteTagsExtension/tree/v0.1"
+                "source": "https://github.com/SyliusLabs/SuiteTagsExtension/tree/v0.2"
             },
-            "time": "2023-11-10T08:45:31+00:00"
+            "time": "2024-03-04T12:02:18+00:00"
         },
         {
             "name": "sylius/sylius-rector",
